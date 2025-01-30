@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+{% endblock %}
+
+{% block content %}
+<h1>Benvenuto!</h1>
+<p>Accedi al tuo account o registrati per iniziare.</p>
+<div class="button-container">
+<a href="{{ url_for('login') }}">
+    <button type="submit" class="animated-button-gradient">
+    <span>Login</span></button>
+</a>  --    
+<div class="button-container">
+<a href="{{ url_for('register') }}">
+    <button type="submit" class="animated-button-gradient">
+    Registrati</button>
+</a></div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='scripts.js') }}"></script>
+{% endblock %}
+    

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Gioco dell'Impiccato{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Gioco dell'Impiccato</h1>
+
+    {% if game_over %}
+        <h2>{{ esito }}</h2>
+        <p>La parola era: <strong>{{ parola }}</strong></p>
+        <form method="POST">
+            <button type="submit" name="reset" class="btn btn-primary">Gioca di nuovo</button>
+        </form>
+    {% else %}
+        <p><strong>Parola da indovinare:</strong> {{ parola_indovinata }}</p>
+        <p><strong>Tentativi rimasti:</strong> {{ tentativi }}</p>
+
+        {% if esito %}
+            <div class="alert alert-danger">{{ esito }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <label for="lettera">Inserisci una lettera:</label>
+            <input type="text" name="lettera" id="lettera" maxlength="1" required>
+            <button type="submit" class="btn btn-success">Prova</button>
+        </form>
+    {% endif %}
+</div>
+
+<!-- Flash messages will appear here based on JS logic -->
+<div id="flash-messages"></div>
+
+{% endblock %}

@@ -1,0 +1,233 @@
+/* Griglia del Sudoku */
+.sudoku-table {
+    border-collapse: collapse;
+    margin: 20px auto;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Ombra per effetto 3D */
+}
+
+/* Stile base per le celle del Sudoku */
+.sudoku-table td {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: 18px;
+    vertical-align: middle;
+    border: 1px solid #ccc; /* Colore più morbido */
+    cursor: pointer;
+    background-color: #f9f9f9; /* Colore di base delle celle */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    /*position: relative;  /* Per posizionare l'input in modo corretto */
+}
+
+/* Aggiungi bordi più spessi per le sottogriglie 3x3 */
+.sudoku-table td:nth-child(3n) {
+    border-right: 3px solid #000;
+}
+
+.sudoku-table td:nth-child(3n+1) {
+    border-left: 3px solid #000;
+}
+
+.sudoku-table tr:nth-child(3n) td {
+    border-bottom: 3px solid #000;
+}
+
+.sudoku-table tr:nth-child(3n+1) td {
+    border-top: 3px solid #000;
+}
+
+/* Input all'interno della cella */
+.sudoku-input {
+    width: 125%;
+    height: 125%;
+    text-align:center;
+    font-size: 18px;
+    border: none;
+    background-color: transparent;
+    outline: none;  /* Rimuove il bordo di focus */
+    font-family: "Montserrat", sans-serif;
+    /*box-sizing: border-box;  /* Include bordi e padding nel calcolo della dimensione */
+}
+
+/* Cella selezionata */
+.sudoku-cell.selected {
+    background-color: #d0e6f6; /* Colore celeste per cella selezionata */
+    transform: scale(1.1);
+}
+
+/* Cella con errore */
+.sudoku-cell.invalid {
+    background-color: #f6d0d0; /* Colore rosso chiaro per errore */
+}
+
+
+
+/* Stili per i messaggi di errore e successo */
+.flash-error, .flash-success {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.flash-error {
+    background-color: #f44336; /* Rosso per errore */
+}
+
+.flash-success {
+    background-color: #4CAF50; /* Verde per successo */
+}
+
+/* Aggiungi altri stili generali qui, se necessario */
+/* Bottone con gradiente animato */
+/* Stile per centrare il pulsante */
+.button-container {
+    display: flex;                 /* Attiva Flexbox */
+    justify-content: center;       /* Centra orizzontalmente */
+    align-items: center;           /* Centra verticalmente */
+}
+
+/* Stile del pulsante */
+.animated-button-gradient {
+    font-family: "Montserrat","serif";
+    background: linear-gradient(90deg, #76b6ff, #a1e9ff);
+    background-size: 200%;
+    color: white;
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-position 0.3s ease, transform 0.2s ease;
+}
+
+/* Effetto al passaggio del mouse */
+.animated-button-gradient:hover {
+    background-position: 100%;    /* Cambia posizione del gradiente */
+    transform: scale(1.1);        /* Ingrandisce leggermente il pulsante */
+}
+
+/* Stile del banner di successo */
+.banner-success {
+    background-color: #4caf53; /* Verde */
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Stile del banner di errore */
+.banner-error {
+    background-color: #f44336; /* Rosso */
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Animazione per rendere visibile il banner in modo graduale */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+    /* <uniquifier>: Use a unique and descriptive class name
+       <weight>: Use a value from 100 to 900*/
+
+.montserrat-Font {
+  font-family: "Montserrat", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+
+body {
+    font-family: "Montserrat", serif;
+    margin: 0;
+    padding: 0;
+    background-color: #256697;
+}
+
+h1 {
+    text-align: center;
+    margin: 20px 0;
+    color: #ffffff;
+}
+
+
+p {
+
+    text-align: center;
+    margin: 20px 0;
+    color: #ffffff
+
+}
+
+a {
+
+    text-align: center;
+    margin: 20px 0;
+    color: #ffffff
+
+}
+
+/* Messaggi di feedback */
+.feedback-message {
+    text-align: center;
+    padding: 10px;
+    margin: 10px auto;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 16px;
+    width: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.feedback-message.success {
+    background-color: #4caf50;
+    color: white;
+}
+
+.feedback-message.error {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Transizione per un effetto più fluido */
+.feedback-message {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

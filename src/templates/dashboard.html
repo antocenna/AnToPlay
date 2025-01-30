@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+Console - Seleziona il tuo gioco
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <h1>Benvenuto, {{ user }}!</h1>
+    <p>Scegli un gioco dalla lista qui sotto:</p>
+    
+    <ul class="game-list">
+        {% for game in games %}
+        <li>
+            <a href="{{ url_for(game['route']) }}" class="game-link">{{ game['name'] }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    
+    <br>
+    <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+</div>
+{% endblock %}

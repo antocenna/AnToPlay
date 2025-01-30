@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Sudoku{% endblock %}
+
+{% block content %}
+    <h1 class="text-center">Sudoku Generato</h1>
+
+    <!-- Gestione dei messaggi -->
+    <div id="message-container"></div>
+
+
+    <!-- Tabella Sudoku -->
+    <table class="sudoku-table" id="sudoku-grid">
+        {% for riga_index, riga in enumerate(griglia) %}
+        <tr>
+            {% for col_index, cella in enumerate(riga) %}
+                <td class="sudoku-cell"
+                    data-row="{{ riga_index }}" 
+                    data-col="{{ col_index }}">
+                    <input
+                        type="number"
+                        maxlength="1"
+                        class="sudoku-input"
+                        value="{{ cella if cella != 0 else '' }}"
+                        {% if cella != 0 %}readonly{% endif %}
+                        {% if cella == 0 %}class="editable"{% endif %}
+                    >
+                </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p id="vite-container">Vite rimanenti: {{ vite }}</p>
+
+    <div class="button-container">
+        <button id = "new-game-button" class="animated-button-gradient">Nuova Partita</button>
+    </div>
+    
+{% endblock %}
+

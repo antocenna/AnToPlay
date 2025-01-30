@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Sasso, Carta, Forbice{% endblock %}
+
+{% block content %}
+    <h1 class="text-center">Sasso, Carta, Forbice</h1>
+    
+    <!-- Contenitore per i messaggi -->
+    <div id="message-container" class="button-container" style="margin-top: 20px; font-size: 1.2rem;"></div>
+
+    <!-- Contenitore dei pulsanti -->
+    <p>Seleziona una mossa:</p>
+    <div class="button-container text-center" style="margin-top: 30px;">
+        <button class="animated-button-gradient" onclick="inviaMossa('sasso')">Sasso</button>
+        <button class="animated-button-gradient" onclick="inviaMossa('carta')">Carta</button>
+        <button class="animated-button-gradient" onclick="inviaMossa('forbice')">Forbice</button>
+    </div>
+{% endblock %}
