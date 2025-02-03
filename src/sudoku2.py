@@ -1,7 +1,17 @@
 import copy
 import numpy as np
 import random
+import hashlib
+import os
 from utils import *
+
+chiave_segreta = os.environ.get("SUDOKU_UTENTE")
+
+
+def genera_flag(id_partita):
+    base = f"{id_partita}-{chiave_segreta}"
+    return "UNINA{" + hashlib.sha256(base.encode()).hexdigest()[:10] + "}"
+
 
 def crea_griglia_vuota():
     #griglia = np.zeros(shape = (9, 9), dtype = int)
@@ -176,6 +186,8 @@ def rimozione_numeri_griglia(griglia, numero_rimozioni):
 
 if(__name__ == "__main__"):
 
+    flag = genera_flag(12)
+    print(flag)
     print("Generazione griglia sudoku...")
     griglia = crea_griglia_vuota()
     for riga in griglia: 
@@ -189,71 +201,3 @@ if(__name__ == "__main__"):
     print("Divertiti col tuo sudoku!") 
     for riga in griglia_modificata:
         print(riga)
-
-
-###FUNZIONE APP.PY
-'''@app.route('/sudoku', methods = ['GET'])
-def sudoku():
-    if 'utente' not in session:
-        redirect(url_for('login'))
-
-    user = session['utente']
-    db = get_database()
-    sudoku_collection = db['sudoku']
-    sudoku_utente = sudoku_collection.find_one({'utente' : user['username']})
-
-    if request.method == 'GET':
-        if sudoku_utente:
-            return render_template('sudoku.html', griglia = sudoku_utente['griglia_da_giocare'])
-        else:
-            #Creiamo la griglia vuota, e poi la riempiamo
-            griglia = crea_griglia_vuota()
-            riempi_griglia(griglia)
-            griglia_modificata = rimozione_numeri_griglia(griglia, 70)
-            # Poiché Flask non puo gestire direttamente oggetti numpy
-            # convertiamo la griglia in una lista di liste
-            griglia_soluzione_liste = griglia.tolist()
-            griglia_liste = griglia_modificata.tolist()
-            sudoku_collection.insert_one({
-            'utente': user['username'],
-            'griglia_soluzione': griglia_soluzione_liste,
-            'griglia_da_giocare': griglia_liste,
-            'stato': 'pronto_per_giocare',
-            'vite' : 3})
-            return render_template('sudoku.html', griglia = griglia_liste)
-
-
-    if request.method == 'POST':
-        data = request.get_json()
-        colonna = int(data['colonna'])
-        riga = int(data['riga'])
-        numero = int(data['numero'])
-            
-        if sudoku_utente:
-            if 1 <= numero <= 9:
-                griglia_da_giocare = sudoku_utente['griglia_da_giocare']
-                griglia_soluzione = sudoku_utente['griglia_soluzione']
-                vite = sudoku_utente['vite']
-
-                if (griglia_da_giocare[riga][colonna] == 0) and (numero == griglia_soluzione[riga][colonna]):
-                    griglia_da_giocare[riga][colonna] = numero
-                    sudoku_collection.update_one(
-                        {'utente': user['username']},
-                        {'$set': {'griglia_da_giocare': griglia_da_giocare, 'vite' : vite}}
-                    )
-                    return redirect(url_for('sudoku', success_message = "Numero corretto!"))
-                else:
-                    if griglia_da_giocare[riga][colonna] != 0:
-                        # Cella non vuota
-                        return redirect(url_for('sudoku', error_message = "La cella selezionata non può essere modificata"))
-                    
-                    if numero != griglia_soluzione[riga][colonna]:
-                        # Numero non corretto
-                        vite -= 1
-                        sudoku_collection.update_one(
-                            {'utente': user['username']},
-                            {'$set': {'vite' : vite}}
-                        )
-                        return redirect(url_for("sudoku", error_message = "Numero incorretto, una vita in meno"))
-            else:
-                return redirect(url_for('sudoku', error_message = "Errore, inserire un numero tra 1 e 9."))'''

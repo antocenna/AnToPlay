@@ -231,3 +231,9 @@ a {
         transform: translateY(0);
     }
 }
+
+
+.flag-container {
+    color: #d0e6f6;
+    text-align: center;
+}

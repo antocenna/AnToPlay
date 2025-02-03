@@ -7,7 +7,7 @@ from Crypto.Cipher import AES
 import bcrypt
 
 
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+from flask import Flask, flash, jsonify, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
 
@@ -119,6 +119,8 @@ def dashboard():
     if 'utente' not in session:
         return redirect(url_for('login')) 
     
+    # Definisco una lista di giochi con le route associate
+    # da passare poi al template
     games = [
         {'name' : "Sasso, Carta, Forbice", 'route' : "scf"}, 
         {'name' : "Impiccato", 'route' : "impiccato"},
@@ -144,6 +146,9 @@ def scf():
 
     if request.method == 'POST':
         
+        # La logica dietro al gioco è che definisco prima le mosse possibili
+        # Poi definisco le regole come un dizionario: la chiave del dizionario vince contro il suo valore
+
         mosse_possibili = ['sasso', 'carta', 'forbice']
         regole = {
             'carta' : 'sasso',
@@ -154,10 +159,14 @@ def scf():
         data = request.get_json()
         mossa_utente = data['mossa']
 
+        # Se la mossa dell'utente corrisponde a quella del computer, è un pareggio
         if mossa_utente == mossa_computer:
             return jsonify(success_message = f"Pareggio. La mossa del computer era: {mossa_computer}")
+        # Se invece la mossa del computer è pari al valore associato alla chiave (mossa_utente)
+        # cio significa che il computer ha perso
         elif regole[mossa_utente] == mossa_computer:
             return jsonify(success_message = f"Vittoria! La mossa del computer era: {mossa_computer}")
+        # Se invece non rientra in questi due casi, vuol dire che il computer avrà vinto
         else:
             return jsonify(error_message = f"Sconfitta :( La mossa del computer era: {mossa_computer}")
 
@@ -169,28 +178,38 @@ def impiccato():
     if 'utente' not in session:
         return redirect(url_for('login'))
 
+    # Inizializzo il gioco (vedi funzione in impiccato.py)
     game = inizializza_gioco()
 
+    # Se la richiesta è di tipo POST e il gioco non è finito
     if request.method == 'POST' and not game['game_over']:
+        # Si prende la lettera dalla richiesta
         guess = request.form.get('lettera')
 
         if game['game_over']:
             return redirect(url_for('impiccato'))
 
-            
+        # Se la parola è presente tra le lettere della parola da indovinare
         if guess in game['lettere_parola']:
-
+            # Ciò significa che possiamo sostituire la lettera
+            # nella parola indovinata, trovando prima la posizione nella parola
             for i in range(len(game['parola'])):
                 if game['lettere_parola'][i] == guess:
                     game['parola_indovinata'][i] = guess
             
+            # Se non sono presenti trattini bassi
+            # vuol dire che la parola da indovinare è stata
+            # indovinata, e quindi il gioco si conclude con una vittoria
             if '_' not in game['parola_indovinata']:
                 game['game_over'] = True
                 game['esito'] = 'Vittoria!'
-            
+        
+        # Se la lettera non fa parte della parola
+        # si deve togliere un tentativo 
         else: 
             game['tentativi'] -= 1
-            
+
+        # e se i tentativi sono finiti il gioco si conclude con una sconfitta
         if game['tentativi'] == 0:
             game['game_over'] = True
             game['esito'] = 'Sconfitta :('
@@ -210,46 +229,132 @@ def impiccato():
 
 
 
+
 @app.route('/sudoku', methods = ['GET', 'POST'])
 def sudoku():
     if 'utente' not in session:
-        redirect(url_for('login'))
+        return redirect(url_for('login'))
 
     user = session['utente']
     db = get_database()
     sudoku_collection = db['sudoku']
-    sudoku_utente = sudoku_collection.find_one({'utente' : user['username']})
+
+    # Per proteggere da attacchi IDOR, basta controllare che l'utente possa vedere solo le proprie partite
+    # sudoku_utente = sudoku_collection.find_one({'utente' : user['username']})
+
+    # Recuperiamo il game_id dal database delle partite
+    # La condizione importante è che la partita viene cercata
+    # in base all'id della partita e non in base a quali sono 
+    # i sudoku dell'utente; 
+    # Un utente malintenzionato può modificare i parametri dell'url
+    # e accedere alle partite di altri giocatori --> Vulnerabilità IDOR
+    game_id = request.args.get('id', type = int)
+    if game_id:
+        sudoku_utente = sudoku_collection.find_one({'id' : game_id})
+        if not sudoku_utente:
+            return redirect(url_for('dashboard', error_message="Partita non trovata."))  
+            # Evita di creare un nuovo Sudoku se l'ID non esiste
+    else:
+        sudoku_utente = sudoku_collection.find_one({'utente' : user['username']})
+
 
     if request.method == 'GET':
+        # Se è stato trovato un sudoku, allora si renderizza il template
         if sudoku_utente:
             app.logger.debug(f"Griglia della soluzione (else): {sudoku_utente['griglia_soluzione']}")
             app.logger.debug(f"Griglia da giocare (else): {sudoku_utente['griglia_da_giocare']}")
-            return render_template('sudoku.html', griglia = sudoku_utente['griglia_da_giocare'])
+            return render_template('sudoku.html', 
+                                   griglia = sudoku_utente['griglia_da_giocare'], 
+                                   vite = sudoku_utente['vite'], 
+                                   id_partita = sudoku_utente['id'])
+        
         else:
+            # Se non è stata trovata partita, dobbiamo crearla
+            # Prima però recuperiamo l'ultimo id utilizzato per una partita dal db
+            ultima_partita = sudoku_collection.find_one({'id' : {'$ne' : 99}}, sort = [('id', -1)])
+            if ultima_partita: 
+                id_partita = ultima_partita['id'] + 1
+            # Se la partita è quella dell'admin, l'id è fissato a 99
+            elif user['username'] == 'admin':
+                id_partita = 99
+            else:
+                id_partita = 1
+
+
             #Creiamo la griglia vuota, e poi la riempiamo
             griglia = crea_griglia_vuota()
             riempi_griglia(griglia)
             app.logger.debug(f"Griglia della soluzione: {griglia}")
 
+            # Dopo aver riempito la griglia, rimuoviamo i numeri
+            # e la inseriamo poi nel DB
             griglia_modificata = rimozione_numeri_griglia(griglia, 70)
             app.logger.debug(f"Griglia da giocare: {griglia_modificata}")
 
             sudoku_collection.insert_one({
+                'id' : id_partita,
                 'utente': user['username'],
                 'griglia_soluzione': griglia,
                 'griglia_da_giocare': griglia_modificata,
                 'stato': 'pronto_per_giocare',
                 'vite' : 10})
             
-            return render_template('sudoku.html', griglia = griglia_modificata, vite = 10)
+
+            return render_template('sudoku.html', 
+                                   griglia = griglia_modificata, 
+                                   vite = 10,
+                                   id_partita = id_partita) 
             
             
     if request.method == 'POST':
-
+        # Quando la request è di tipo post, ci sono 3 possibili azioni
+        # 1. Inserimento del numero, e vengono passati al backend, 
+        #    numero, riga e colonna dove inserire il numero
+        # 2. Controllo validità, quando si termina il sudoku,
+        #    per controllare se il sudoku è stato completato correttamente
+        # 3. Nuova partita, per cominciare una nuova partita dopo averne finita una
         data = request.get_json()
         azione = data.get('azione')
+        app.logger.debug(f"Azione: {azione}")
+
+        # Recuperiamo l'id ad ogni richiesta post in quanto
+        # ciò ci servirà per poter ricercare la partita, 
+        # poiché altrimenti per la vulnerabilità IDOR non si 
+        # potrebbe aggiornare la partita a cui si sta cercando di accedere
+        id_partita = data.get('id_partita')
+        if not id_partita:
+            return jsonify(error_message = "Id partita mancante")
+        id_partita = int(id_partita)
+        app.logger.debug(f"ID Partita ricevuto: {id_partita}")
 
 
+        # 2. Controllo validita del sudoku rispetto alla soluzione
+        if azione == "controlla_validita":
+
+            # Ricarichiamo la partita dal DB per garantire che IDOR funzioni
+            sudoku_utente = sudoku_collection.find_one({'id': id_partita})
+            if not sudoku_utente:
+                return jsonify(error_message="Partita non trovata!")
+
+            app.logger.debug(f"ID partita recuperato: {id_partita}")
+            app.logger.debug(f"Griglia soluzione (recuperata): {sudoku_utente.get('griglia_soluzione')}")
+            app.logger.debug(f"Griglia da giocare (recuperata): {sudoku_utente.get('griglia_da_giocare')}")
+
+            if sudoku_utente['griglia_da_giocare'] == sudoku_utente['griglia_soluzione']:
+                sudoku_collection.update_one(
+                    {'id': id_partita},
+                    {'$set': {'stato': 'completato'}}
+                )
+                if id_partita == 99:
+                    flag = genera_flag(id_partita)
+                    return jsonify(success_message='Hai completato il sudoku!', flag=flag, id_partita = id_partita)
+                else:
+                    return jsonify(success_message=f"Complimenti {user['username']}, sudoku completato", id_partita = id_partita)
+
+            return jsonify(error_message="Il sudoku non è ancora completo!", id_partita = id_partita)
+
+
+        # 3. Creazione di una nuova partita
         if azione == "nuova_partita":
             griglia = crea_griglia_vuota()
             riempi_griglia(griglia)
@@ -261,61 +366,82 @@ def sudoku():
                     'griglia_soluzione': griglia,
                     'griglia_da_giocare': griglia_modificata,
                     'vite': 10
-                }}
+                }},
+                upsert = True
             )
-            return render_template('sudoku.html', griglia = griglia_modificata, vite = 10)
-
-
-        riga = int(data['riga'])
+            return render_template('sudoku.html', 
+                                   griglia = griglia_modificata, 
+                                   vite = 10,
+                                   id_partita = id_partita ) 
+            
+        # 1. Inserimento del numero nel sudoku, 
+        # recuperiamo riga, colonna e numero da inserire
+        riga = data.get('riga')
         app.logger.debug(f"Riga numero inserito: {riga}")
-        colonna = int(data['colonna'])
+        colonna = data.get('colonna')
         app.logger.debug(f"Colonna numero inserito: {colonna}")
-        numero = int(data['numero'])
+        numero = data.get('numero')
         app.logger.debug(f"Numero inserito: {numero}")
 
+
+        if riga is not None and colonna is not None and numero is not None:
+            try:
+                riga = int(riga)
+                colonna = int(colonna)
+                numero = int(numero)
+            except:
+                return jsonify(error_message = "Formato non valido", id_partita = id_partita)
             
-        if sudoku_utente:
+            # Recuperiamo ogni volta il sudoku da controllare (perchè l'id potrebbe cambiare)
+            sudoku_utente = sudoku_collection.find_one({'id': id_partita})
+            if not sudoku_utente:
+                return jsonify(error_message="Partita non trovata!", id_partita = id_partita)
+
+            # Il numero del sudoku deve essere compreso tra 1 e 9
             if 1 <= numero <= 9:
                 vite = sudoku_utente['vite']
+
                 if vite > 0:
+                    # Recuperiamo la griglia completa e la griglia da riempire
                     griglia_da_giocare = sudoku_utente['griglia_da_giocare']
                     griglia_soluzione = sudoku_utente['griglia_soluzione']
-                    if griglia_da_giocare == griglia_soluzione:
-                        return jsonify(success_message = 'Hai completato il sudoku!')
-                    
+
                     app.logger.debug(f"Griglia soluzione (recuperata): {griglia_soluzione}")
                     app.logger.debug(f"Griglia da giocare (recuperata): {griglia_da_giocare}")
                     app.logger.debug(f"Riga griglia: {riga}")
                     app.logger.debug(f"Colonna Griglia: {colonna}")
                     app.logger.debug(f"Numero della soluzione: {griglia_soluzione[riga][colonna]}")
+
+                    # Se il numero che vorremmo inserire è quello corretto allora lo inseriamo   
                     if numero == griglia_soluzione[riga][colonna]:
                         griglia_da_giocare[riga][colonna] = numero
                         sudoku_collection.update_one(
-                            {'utente': user['username']},
+                            {'id': id_partita},
                             {'$set': {'griglia_da_giocare': griglia_da_giocare, 'vite' : vite}}
                         )
-                        return jsonify(success_message = 'Numero corretto!', vite = vite)
-                        #return redirect(url_for('sudoku', success_message = "Numero corretto!"))
+                        return jsonify(success_message = 'Numero corretto!', vite = vite, id_partita = id_partita)
+
                     else:
-                            # Numero non corretto
+                        # Numero non corretto
                         vite -= 1
                         sudoku_collection.update_one(
-                        {'utente': user['username']},
+                        {'id': id_partita},
                         {'$set': {'vite' : vite}}
                         )
-                        return jsonify(error_message = 'Numero incorretto, una vita in meno', vite = vite)
-                        #return redirect(url_for("sudoku", error_message = "Numero incorretto, una vita in meno"))
+                        return jsonify(error_message = 'Numero incorretto, una vita in meno', vite = vite, id_partita = id_partita)
+                
+                # In questo ramo si va quando si terminano le vite
                 else:
                     sudoku_collection.update_one(
-                        {'utente': user['username']},
+                        {'id': id_partita},
                         {'$set': {'vite' : 3}}
                         )
-                    return jsonify(error_message = 'Errore, vite terminate!', vite = 0)
-                    #return redirect(url_for('sudoku', error_message = "Errore, vite terminate!"))
-            else:
-                return jsonify(error_message = 'Errore, inserire un numero tra 1 e 9.')
-                #return redirect(url_for('sudoku', error_message = "Errore, inserire un numero tra 1 e 9."))
+                    return jsonify(error_message = 'Errore, vite terminate!', vite = 0, id_partita = id_partita)
 
+            else:
+                return jsonify(error_message = 'Errore, inserire un numero tra 1 e 9.', id_partita = id_partita)
+
+        return jsonify(error_message = "Richiesta non valida", id_partita = id_partita)
 
 
 if __name__ == '__main__':

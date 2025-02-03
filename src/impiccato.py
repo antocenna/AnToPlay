@@ -4,22 +4,29 @@ from flask import Flask, session
 
 
 def inizializza_gioco():
+    # Questa funzione si occupa di recuperare il db,
+    # e cercare eventualmente una partita
     db = get_database()
     impiccato_collection = db['impiccato']
 
     game = impiccato_collection.find_one({'utente_id' : session['utente'], 'game_over' : False})
 
-    # Inizializza il gioco solo se è la prima visita
+    # Se non è stata trovata una partita, 
+    # si inizializza il gioco 
     if game is None:
+        # Prendiamo le parole dal db e le mettiamo in una lista
         lista_parole = []
         words_collection = db['words']
         for word in words_collection.find():
             lista_parole.append(word['word'])
 
+        # Scegliamo una parola random dalla lista, 
+        # con lunghezza minima di 3 caratteri
         parola = random.choice(lista_parole)
         while len(parola) < 3:
             parola = random.choice(lista_parole)
 
+        # Creiamo il document della partita da inserire nel db
         game = {
             'utente_id' : session['utente'],
             'parola' : parola,

@@ -9,6 +9,7 @@
     <div id="message-container"></div>
 
 
+
     <!-- Tabella Sudoku -->
     <table class="sudoku-table" id="sudoku-grid">
         {% for riga_index, riga in enumerate(griglia) %}
@@ -34,8 +35,20 @@
     <p id="vite-container">Vite rimanenti: {{ vite }}</p>
 
     <div class="button-container">
-        <button id = "new-game-button" class="animated-button-gradient">Nuova Partita</button>
+        <button id = "new-game-button" class="animated-button-gradient" style="margin-bottom: 20px;">Nuova Partita</button>
     </div>
+    
+
+
+    <div class = "button-container">
+        <button id = "validate-sudoku" class = "animated-button-gradient">Controlla validità</button>
+    </div>
+
+
+    <div id="flag-container" style="display: none;"></div>
+
+    <div id="game-container" data-id="{{id_partita}}">id_partita: {{id_partita}}</div>
+    
     
 {% endblock %}
 
