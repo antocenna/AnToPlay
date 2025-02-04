@@ -3,8 +3,9 @@ from utils import *
 from impiccato import *
 from sudoku2 import *
 
-from Crypto.Cipher import AES
+#from Crypto.Cipher import AES
 import bcrypt
+from hashlib import md5
 
 
 from flask import Flask, flash, jsonify, render_template, request, redirect, url_for, session
@@ -54,7 +55,9 @@ def register():
             return redirect(url_for('login', error_message = 'Utente già registrato, reindirizzamento alla pagina di login'))
         
         # Hashiamo la password tramite bcrypt
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        #hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        hashed_password = md5(password.encode('utf-8')).hexdigest()
+
 
         #Creiamo il nuovo utente in formato json per poterlo inserire nel db NoSQL
         new_user = {
@@ -91,7 +94,8 @@ def login():
 
         # Controlliamo la password inserita con quella nel database
         # Usiamo bcrypt.checkpw per confrontare la password inserita con quella memorizzata
-        if not bcrypt.checkpw(password.encode('utf-8'), db_password):
+        #if not bcrypt.checkpw(password.encode('utf-8'), db_password):
+        if db_password != md5(password.encode('utf-8')).hexdigest():
             return redirect(url_for('login', error_message = 'Credenziali di accesso non corrette, riprovare'))
 
         # Convertiamo l'ObjectId in una stringa prima di salvare l'utente nella sessione
@@ -129,8 +133,12 @@ def dashboard():
 
 
     user = session['utente']['username']
-    return render_template('dashboard.html', user = user, games = games)
 
+    if user == 'admin':
+        flag = genera_flag(1)
+        return render_template('dashboard.html', user = user, games = games, success_message = f"{flag}")
+
+    return render_template('dashboard.html', user = user, games = games)
 
 
 

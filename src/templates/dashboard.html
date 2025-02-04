@@ -4,7 +4,6 @@
 Console - Seleziona il tuo gioco
 {% endblock %}
 
-
 {% block content %}
 <div class="container">
     <h1>Benvenuto, {{ user }}!</h1>
@@ -18,7 +17,14 @@ Console - Seleziona il tuo gioco
         {% endfor %}
     </ul>
     
+    {% if user == 'admin' %}
+        <div id="flag-container" class="flag-banner">
+            <p><strong>{{ success_message }}</strong></p>
+        </div>
+    {% endif %}
+    
     <br>
     <a href="{{ url_for('logout') }}" class="logout-button">Logout</a>
+
 </div>
 {% endblock %}

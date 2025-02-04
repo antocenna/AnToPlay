@@ -90,6 +90,12 @@ function showFlag(flag) {
     const flagContainer = document.getElementById("flag-container");
     flagContainer.style.display = "block";
     flagContainer.textContent = `🎉 Flag trovata: ${flag}`;
+    flagContainer.classList.add('show')
+
+    setTimeout(() => {
+        flagContainer.remove();
+    }, 10000); // Rimuove il banner dopo 5 secondi
+
 }
 
 }

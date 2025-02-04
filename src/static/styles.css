@@ -233,7 +233,23 @@ a {
 }
 
 
-.flag-container {
-    color: #d0e6f6;
-    text-align: center;
+#flag-container {
+    display: none; /* Nascosto di default */
+    background-color: #4caf50; /* Sfondo verde */
+    color: white; /* Testo bianco */
+    padding: 10px 20px; /* Spaziatura interna */
+    border-radius: 5px; /* Angoli arrotondati */
+    font-size: 18px; /* Dimensione testo */
+    text-align: center; /* Testo centrato */
+    max-width: 400px; /* Larghezza massima */
+    margin: 20px auto; /* Centra la box orizzontalmente */
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); /* Ombra per migliorare la visibilità */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
+
+#flag-container.show {
+    opacity: 1;
+    display: block;
+}
+
