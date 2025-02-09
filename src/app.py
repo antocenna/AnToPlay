@@ -48,7 +48,8 @@ def register():
         # Otteniamo la collezione dal database
         users_collection = db['users']
         
-        # Controlliamo se esiste gia un utente con tale username, e in tal caso vorrebbe dire che l'utente
+        # Controlliamo se esiste gia un utente con tale username,
+        # e in tal caso vorrebbe dire che l'utente
         # è già registrato
         user = users_collection.find_one({'username' : utente})
         if user:
@@ -56,6 +57,8 @@ def register():
         
         # Hashiamo la password tramite bcrypt
         #hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        # Hashiamo la password tramite MD5
         hashed_password = md5(password.encode('utf-8')).hexdigest()
 
 
@@ -95,6 +98,9 @@ def login():
         # Controlliamo la password inserita con quella nel database
         # Usiamo bcrypt.checkpw per confrontare la password inserita con quella memorizzata
         #if not bcrypt.checkpw(password.encode('utf-8'), db_password):
+
+
+        
         if db_password != md5(password.encode('utf-8')).hexdigest():
             return redirect(url_for('login', error_message = 'Credenziali di accesso non corrette, riprovare'))
 

@@ -20,11 +20,12 @@
             <div class="alert alert-danger">{{ esito }}</div>
         {% endif %}
 
-        <form method="POST">
-            <label for="lettera">Inserisci una lettera:</label>
+        <form method="POST" class="letter-form">
+            <label for="lettera" class="text-white">Inserisci una lettera:</label>
             <input type="text" name="lettera" id="lettera" maxlength="1" required>
-            <button type="submit" class="btn btn-success">Prova</button>
+            <button type="submit" class="animated-button-gradient">Prova</button>
         </form>
+        
     {% endif %}
 </div>
 
